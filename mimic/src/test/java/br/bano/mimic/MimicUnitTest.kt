@@ -9,8 +9,8 @@ import java.util.*
 class MimicUnitTest {
     @Test
     fun generateList_withOnlyMimicAnnotationEnable() {
-        val list = Object1::class.java.generateList(10000, mimicAnnotationOnly = true)
-        assertEquals(10000, list.size)
+        val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = true)
+        assertEquals(30000, list.size)
         list.forEach {
             assertNotNull(it.string1)
             assertNull(it.string2)
@@ -29,6 +29,7 @@ class MimicUnitTest {
 
             assert(it.int1 in 1..MAX_INT_SIZE)
             assertEquals(0, it.int2)
+            assert(it.int3 in 1..MAX_INT_SIZE_TEST)
 
             assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
             assert(it.double2 == 0.0)
@@ -54,8 +55,8 @@ class MimicUnitTest {
 
     @Test
     fun generateList_withOnlyMimicAnnotationDisable() {
-        val list = Object1::class.java.generateList(10000, mimicAnnotationOnly = false)
-        assertEquals(10000, list.size)
+        val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = false)
+        assertEquals(30000, list.size)
         list.forEach {
             assertNotNull(it.string1)
             assertNotNull(it.string2)
@@ -74,6 +75,7 @@ class MimicUnitTest {
 
             assert(it.int1 in 1..MAX_INT_SIZE)
             assert(it.int2 in 1..MAX_INT_SIZE)
+            assert(it.int3 in 1..MAX_INT_SIZE_TEST)
 
             assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
             assert(it.double2 in 0.1..MAX_DOUBLE_SIZE + 1.0)
@@ -108,6 +110,8 @@ class MimicUnitTest {
         @MimicRandom
         var int1: Int = 0
         var int2: Int = 0
+        @MimicInt(MAX_INT_SIZE_TEST)
+        var int3: Int = 0
 
         @MimicRandom
         var isSomething: Boolean = false

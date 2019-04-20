@@ -97,7 +97,8 @@ private fun <T : Any> setStringIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setIntField(obj: T, field: Field) {
-    field.setInt(obj, Random.nextInt(MAX_INT_SIZE) + 1)
+    val max = (field.annotations.find { it is MimicInt } as? MimicInt)?.max ?: MAX_INT_SIZE
+    field.setInt(obj, Random.nextInt(max) + 1)
 }
 
 private fun <T : Any> setIntIdField(obj: T, field: Field) {

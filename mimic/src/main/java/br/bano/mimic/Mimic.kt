@@ -6,12 +6,12 @@ import java.lang.reflect.Field
 import java.util.*
 import kotlin.random.Random
 
-const val MAX_STRING_LENGTH = 50
+const val MAX_STRING_LENGTH = 150
 const val MAX_INT_SIZE = 1000
 const val MAX_LONG_SIZE = 1000000L
 const val MAX_DOUBLE_SIZE = 1000.0
 const val MIN_WORDS = 1
-const val MAX_WORDS = 10
+const val MAX_WORDS = 30
 
 fun <T : Any> Class<T>.generateList(size: Int, mimicAnnotationOnly: Boolean = false): List<T> {
     return (0 until size).map {
@@ -77,11 +77,16 @@ private fun Field.isMimic(
             this.annotations.any(predicated))
 
 private fun <T : Any> setStringField(obj: T, field: Field, lorem: LoremIpsum) {
-    val words = lorem.getWords(MIN_WORDS, MAX_WORDS)
+    val stringAnnotation = field.annotations.find { it is MimicString } as? MimicString
+    val maxLength = stringAnnotation?.maxLength ?: MAX_STRING_LENGTH
+    val minWords = stringAnnotation?.minWords ?: MIN_WORDS
+    val maxWords = stringAnnotation?.maxWords ?: MAX_WORDS
+
+    val words = lorem.getWords(minWords, maxWords)
     field.set(
         obj,
-        if (words.length > MAX_STRING_LENGTH)
-            words.substring(0, MAX_STRING_LENGTH).trim()
+        if (words.length > maxLength)
+            words.substring(0, maxLength).trim()
         else
             words
     )

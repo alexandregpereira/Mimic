@@ -18,9 +18,14 @@ class MimicUnitTest {
             val valueLength = it.string1?.length ?: 0
             assert(valueLength in 1..MAX_STRING_LENGTH)
             assertNull(it.string2)
+            assert(it.string3?.length ?: 0 in 1..MAX_STRING_LENGTH_TEST)
+
+            assert(it.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+            assert(it.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
 
             assert(!(it.string1?.contains("-") ?: false))
             assert(!(it.string2?.contains("-") ?: false))
+            assert(!(it.string3?.contains("-") ?: false))
 
             assert(it.int1 in 1..MAX_INT_SIZE)
             assertEquals(0, it.int2)
@@ -59,8 +64,13 @@ class MimicUnitTest {
             assert(valueLength in 1..MAX_STRING_LENGTH)
             assert(it.string2?.length ?: 0 in 1..MAX_STRING_LENGTH)
 
+            assert(it.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+            assert(it.string2?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+            assert(it.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
+
             assert(!(it.string1?.contains("-") ?: false))
             assert(!(it.string2?.contains("-") ?: false))
+            assert(!(it.string3?.contains("-") ?: false))
 
             assert(it.int1 in 1..MAX_INT_SIZE)
             assert(it.int2 in 1..MAX_INT_SIZE)
@@ -92,6 +102,8 @@ class MimicUnitTest {
         @MimicRandom
         var string1: String? = null
         var string2: String? = null
+        @MimicString(MAX_STRING_LENGTH_TEST, MIN_WORDS_TEST, MAX_WORDS_TEST)
+        var string3: String? = null
 
         @MimicRandom
         var int1: Int = 0
@@ -123,5 +135,14 @@ class MimicUnitTest {
         var intId1: Int = 0
         @MimicLongId
         var longId1: Long = 0
+    }
+
+    companion object {
+        const val MAX_STRING_LENGTH_TEST = 80
+        const val MAX_INT_SIZE_TEST = 10
+        const val MAX_LONG_SIZE_TEST = 100L
+        const val MAX_DOUBLE_SIZE_TEST = 10.0
+        const val MIN_WORDS_TEST = 2
+        const val MAX_WORDS_TEST = 4
     }
 }

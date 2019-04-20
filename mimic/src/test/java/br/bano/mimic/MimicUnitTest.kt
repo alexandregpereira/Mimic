@@ -33,6 +33,7 @@ class MimicUnitTest {
 
             assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
             assert(it.double2 == 0.0)
+            assert(it.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
 
             assert(it.float1 > 0.0f)
             assert(it.float2 == 0.0f)
@@ -79,6 +80,7 @@ class MimicUnitTest {
 
             assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
             assert(it.double2 in 0.1..MAX_DOUBLE_SIZE + 1.0)
+            assert(it.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
 
             assert(it.float1 > 0.0f)
             assert(it.float2 > 0.0f)
@@ -120,6 +122,8 @@ class MimicUnitTest {
         @MimicRandom
         var double1: Double = 0.0
         var double2: Double = 0.0
+        @MimicDouble(MAX_DOUBLE_SIZE_TEST)
+        var double3: Double = 0.0
 
         @MimicRandom
         var float1: Float = 0.0f

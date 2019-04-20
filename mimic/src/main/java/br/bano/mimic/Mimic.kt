@@ -114,7 +114,8 @@ private fun <T : Any> setLongIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setDoubleField(obj: T, field: Field) {
-    field.setDouble(obj, Random.nextDouble(MAX_DOUBLE_SIZE) + 1.0)
+    val max = (field.annotations.find { it is MimicDouble } as? MimicDouble)?.max ?: MAX_DOUBLE_SIZE
+    field.setDouble(obj, Random.nextDouble(max) + 1.0)
 }
 
 private fun <T : Any> setFloatField(obj: T, field: Field) {

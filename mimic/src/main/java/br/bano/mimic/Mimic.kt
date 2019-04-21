@@ -12,6 +12,8 @@ const val MAX_LONG_SIZE = 1000000L
 const val MAX_DOUBLE_SIZE = 1000.0
 const val MIN_WORDS = 1
 const val MAX_WORDS = 30
+const val MIN_TIME = 1555804864884L
+const val MAX_TIME = 1555804864884L
 
 fun <T : Any> Class<T>.generateList(size: Int, mimicAnnotationOnly: Boolean = false): List<T> {
     return (0 until size).map {
@@ -39,7 +41,7 @@ fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false): T {
             isMimicDouble(field, mimicAnnotationOnly) -> setDoubleField(obj, field)
             field.isMimic(Float::class.java, mimicAnnotationOnly) -> setFloatField(obj, field)
             field.isMimic(Boolean::class.java, mimicAnnotationOnly) -> setBooleanField(obj, field)
-            field.isMimic(Date::class.java, mimicAnnotationOnly) -> setDateField(obj, field)
+            isMimicDate(field, mimicAnnotationOnly) -> setDateField(obj, field)
         }
     }
 
@@ -66,6 +68,9 @@ private fun isMimicLongId(field: Field) =
 
 private fun isMimicDouble(field: Field, mimicAnnotationOnly: Boolean) =
         field.isMimic(Double::class.java, mimicAnnotationOnly) { it is MimicDouble || it is MimicRandom }
+
+private fun isMimicDate(field: Field, mimicAnnotationOnly: Boolean) =
+        field.isMimic(Date::class.java, mimicAnnotationOnly) { it is MimicDate || it is MimicRandom }
 
 private fun Field.isMimic(
     clazz: Class<*>,
@@ -127,5 +132,9 @@ private fun <T : Any> setBooleanField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setDateField(obj: T, field: Field) {
-    field.set(obj, Date())
+    val annotation = field.annotations.find { it is MimicDate } as? MimicDate
+    val minDate = annotation?.minTime ?: MIN_TIME
+    val maxDate = annotation?.maxTime ?: MAX_TIME
+    val time = if (minDate == maxDate) minDate else Random.nextLong(minDate, maxDate)
+    field.set(obj, Date(time))
 }

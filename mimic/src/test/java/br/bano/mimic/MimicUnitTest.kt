@@ -38,8 +38,9 @@ class MimicUnitTest {
             assert(it.float1 > 0.0f)
             assert(it.float2 == 0.0f)
 
-            assertNotNull(it.date1)
+            assertEquals(MIN_TIME, it.date1?.time)
             assertNull(it.date2)
+            assert(it.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
 
             assert(it.long1 in 1..MAX_LONG_SIZE)
             assertEquals(0, it.long2)
@@ -85,8 +86,9 @@ class MimicUnitTest {
             assert(it.float1 > 0.0f)
             assert(it.float2 > 0.0f)
 
-            assertNotNull(it.date1)
-            assertNotNull(it.date2)
+            assertEquals(MIN_TIME, it.date1?.time)
+            assertEquals(MIN_TIME, it.date2?.time)
+            assert(it.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
 
             assert(it.long1 in 1..MAX_LONG_SIZE)
             assert(it.long2 in 1..MAX_LONG_SIZE)
@@ -132,6 +134,8 @@ class MimicUnitTest {
         @MimicRandom
         var date1: Date? = null
         var date2: Date? = null
+        @MimicDate(MIN_TIME_TEST, MAX_TIME_TEST)
+        var date3: Date? = null
 
         @MimicRandom
         var long1: Long = 0
@@ -152,5 +156,7 @@ class MimicUnitTest {
         const val MAX_DOUBLE_SIZE_TEST = 10.0
         const val MIN_WORDS_TEST = 2
         const val MAX_WORDS_TEST = 4
+        const val MIN_TIME_TEST = 1554163179000L
+        const val MAX_TIME_TEST = 1554681579000L
     }
 }

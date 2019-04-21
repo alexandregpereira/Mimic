@@ -15,20 +15,20 @@ class MimicViewModelUnitTest {
     @Test
     fun getList_mimicOnlyAnnotationDisable_checkListSize() {
         val viewModel = MimicViewModelTest<Object1>()
-        viewModel.getListLiveData(Object1::class.java, 20000)
+        viewModel.generateListLiveData(Object1::class.java, 20000)
         assertEquals(20000, viewModel.getList()?.size)
     }
 
     @Test
     fun getList_mimicOnlyAnnotationEnable_checkListSize() {
         val viewModel = MimicViewModelTest<Object1>()
-        viewModel.getListLiveData(Object1::class.java, 20000, true)
+        viewModel.generateListLiveData(Object1::class.java, 20000, true)
         assertEquals(20000, viewModel.getList()?.size)
     }
     @Test
     fun getObj_mimicOnlyAnnotationDisable_checkObj() {
         val viewModel = MimicViewModelTest<Object1>()
-        viewModel.getObjLiveData(Object1::class.java)
+        viewModel.generateObjLiveData(Object1::class.java)
         assertNotNull(viewModel.getObj())
         assertNotNull(viewModel.getObj()?.obj)
     }
@@ -36,7 +36,7 @@ class MimicViewModelUnitTest {
     @Test
     fun getObj_mimicOnlyAnnotationEnable_checkObj() {
         val viewModel = MimicViewModelTest<Object1>()
-        viewModel.getObjLiveData(Object1::class.java)
+        viewModel.generateObjLiveData(Object1::class.java)
         assertNotNull(viewModel.getObj())
         assertNotNull(viewModel.getObj()?.obj)
     }

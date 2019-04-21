@@ -17,11 +17,11 @@ const val MAX_TIME = 1555804864884L
 
 fun <T : Any> Class<T>.generateList(size: Int, mimicAnnotationOnly: Boolean = false): List<T> {
     return (0 until size).map {
-        this.generateObj(mimicAnnotationOnly)
+        this.generateObj(mimicAnnotationOnly, avoidSubLists = false)
     }
 }
 
-fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false): T {
+fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false, avoidSubLists: Boolean = false): T {
     val obj: T = try {
         this.getConstructor().newInstance()
     } catch (ex: NoSuchMethodException) {
@@ -43,6 +43,7 @@ fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false): T {
             field.isMimic(Boolean::class.java, mimicAnnotationOnly) -> setBooleanField(obj, field)
             isMimicDate(field, mimicAnnotationOnly) -> setDateField(obj, field)
             isMimicObject(field) -> setObjectField(obj, field, mimicAnnotationOnly)
+            !avoidSubLists && isMimicList(field) -> setListField(obj, field, mimicAnnotationOnly)
         }
     }
 
@@ -50,31 +51,34 @@ fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false): T {
 }
 
 private fun isMimicString(field: Field, mimicAnnotationOnly: Boolean) =
-        field.isMimic(String::class.java, mimicAnnotationOnly) { it is MimicString || it is MimicRandom }
+    field.isMimic(String::class.java, mimicAnnotationOnly) { it is MimicString || it is MimicRandom }
 
 private fun isMimicStringId(field: Field) =
-        field.isMimic(String::class.java) { it is MimicStringId }
+    field.isMimic(String::class.java) { it is MimicStringId }
 
 private fun isMimicInt(field: Field, mimicAnnotationOnly: Boolean) =
-        field.isMimic(Int::class.java, mimicAnnotationOnly) { it is MimicInt || it is MimicRandom }
+    field.isMimic(Int::class.java, mimicAnnotationOnly) { it is MimicInt || it is MimicRandom }
 
 private fun isMimicIntId(field: Field) =
-        field.isMimic(Int::class.java) { it is MimicIntId }
+    field.isMimic(Int::class.java) { it is MimicIntId }
 
 private fun isMimicLong(field: Field, mimicAnnotationOnly: Boolean) =
-        field.isMimic(Long::class.java, mimicAnnotationOnly) { it is MimicLong || it is MimicRandom }
+    field.isMimic(Long::class.java, mimicAnnotationOnly) { it is MimicLong || it is MimicRandom }
 
 private fun isMimicLongId(field: Field) =
-        field.isMimic(Long::class.java) { it is MimicLongId }
+    field.isMimic(Long::class.java) { it is MimicLongId }
 
 private fun isMimicDouble(field: Field, mimicAnnotationOnly: Boolean) =
-        field.isMimic(Double::class.java, mimicAnnotationOnly) { it is MimicDouble || it is MimicRandom }
+    field.isMimic(Double::class.java, mimicAnnotationOnly) { it is MimicDouble || it is MimicRandom }
 
 private fun isMimicDate(field: Field, mimicAnnotationOnly: Boolean) =
-        field.isMimic(Date::class.java, mimicAnnotationOnly) { it is MimicDate || it is MimicRandom }
+    field.isMimic(Date::class.java, mimicAnnotationOnly) { it is MimicDate || it is MimicRandom }
 
 private fun isMimicObject(field: Field) =
     field.annotations.any { it is MimicObject<*> }
+
+private fun isMimicList(field: Field) =
+    field.annotations.any { it is MimicList<*> }
 
 private fun Field.isMimic(
     clazz: Class<*>,
@@ -83,7 +87,7 @@ private fun Field.isMimic(
 ) =
     this.type.isAssignableFrom(clazz) &&
             (!mimicAnnotationOnly ||
-            this.annotations.any(predicated))
+                    this.annotations.any(predicated))
 
 private fun <T : Any> setStringField(obj: T, field: Field, lorem: LoremIpsum) {
     val stringAnnotation = field.annotations.find { it is MimicString } as? MimicString
@@ -147,5 +151,11 @@ private fun <T : Any> setDateField(obj: T, field: Field) {
 private fun <T : Any> setObjectField(obj: T, field: Field, mimicAnnotationOnly: Boolean) {
     val annotation = field.annotations.find { it is MimicObject<*> } as? MimicObject<*> ?: return
     val mimicObj = annotation.clazz.java.generateObj(mimicAnnotationOnly)
+    field.set(obj, mimicObj)
+}
+
+private fun <T : Any> setListField(obj: T, field: Field, mimicAnnotationOnly: Boolean) {
+    val annotation = field.annotations.find { it is MimicList<*> } as? MimicList<*> ?: return
+    val mimicObj = annotation.clazz.java.generateList(annotation.size, mimicAnnotationOnly)
     field.set(obj, mimicObj)
 }

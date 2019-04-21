@@ -1,5 +1,6 @@
 package br.bano.mimic
 
+import br.bano.mimic.MimicUnitTest.Companion.MAX_SUBLIST_SIZE
 import br.bano.mimic.annotation.*
 import java.util.*
 
@@ -51,4 +52,7 @@ class Object1 : MimicObj {
 
     @MimicObject<Object2>(Object2::class)
     var obj: Object2? = null
+
+    @MimicList<Object2>(Object2::class, MAX_SUBLIST_SIZE)
+    var objList: List<Object2>? = null
 }

@@ -4,10 +4,11 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class MimicUnitTest {
+
     @Test
     fun generateList_withOnlyMimicAnnotationEnable() {
-        val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = true)
-        assertEquals(30000, list.size)
+        val list = Object1::class.java.generateList(MAX_LIST_SIZE, mimicAnnotationOnly = true)
+        assertEquals(MAX_LIST_SIZE, list.size)
         list.forEach {
             assertObj_withOnlyMimicAnnotationEnable(it)
             val obj = it.obj
@@ -17,6 +18,74 @@ class MimicUnitTest {
         assert(list.any { it.isSomething })
         assert(list.any { !it.isSomething })
         assert(!list.any { it.isSomething2 })
+    }
+
+    @Test
+    fun generateList_withOnlyMimicAnnotationDisable() {
+        val list = Object1::class.java.generateList(MAX_LIST_SIZE, mimicAnnotationOnly = false)
+        assertEquals(MAX_LIST_SIZE, list.size)
+        list.forEach {
+            assertObj_withOnlyMimicAnnotationDisable(it)
+            val obj = it.obj
+            if (obj != null) assertObj_withOnlyMimicAnnotationDisable(obj)
+        }
+
+        assert(list.any { it.isSomething })
+        assert(list.any { !it.isSomething })
+        assert(list.any { it.isSomething2 })
+        assert(list.any { !it.isSomething2 })
+    }
+
+    @Test
+    fun generateObj_withOnlyMimicAnnotationEnable() {
+        val obj = Object1::class.java.generateObj(mimicAnnotationOnly = true)
+        assertObj_withOnlyMimicAnnotationEnable(obj)
+    }
+
+    @Test
+    fun generateObj_withOnlyMimicAnnotationDisable() {
+        val obj = Object1::class.java.generateObj(mimicAnnotationOnly = false)
+        assertObj_withOnlyMimicAnnotationDisable(obj)
+    }
+
+    @Test
+    fun getList_withOnlyMimicAnnotationDisable_checkListInsideObjIsMocked() {
+        val list = Object1::class.java.generateList(MAX_LIST_SIZE, mimicAnnotationOnly = false)
+        list.forEach {
+            assertEquals(MAX_SUBLIST_SIZE, it.objList?.size)
+            it.objList?.forEach { obj2 ->
+                assertObj_withOnlyMimicAnnotationDisable(obj2)
+            }
+        }
+    }
+
+    @Test
+    fun getList_withOnlyMimicAnnotationEnable_checkListInsideObjIsMocked() {
+        val list = Object1::class.java.generateList(MAX_LIST_SIZE, mimicAnnotationOnly = true)
+        list.forEach {
+            assertEquals(MAX_SUBLIST_SIZE, it.objList?.size)
+            it.objList?.forEach { obj2 ->
+                assertObj_withOnlyMimicAnnotationEnable(obj2)
+            }
+        }
+    }
+
+    @Test
+    fun getObj_withOnlyMimicAnnotationDisable_checkListInsideObjIsMocked() {
+        val obj = Object1::class.java.generateObj(mimicAnnotationOnly = false)
+        assertEquals(MAX_SUBLIST_SIZE, obj.objList?.size)
+        obj.objList?.forEach { obj2 ->
+            assertObj_withOnlyMimicAnnotationDisable(obj2)
+        }
+    }
+
+    @Test
+    fun getObj_withOnlyMimicAnnotationEnable_checkListInsideObjIsMocked() {
+        val obj = Object1::class.java.generateObj(mimicAnnotationOnly = true)
+        assertEquals(MAX_SUBLIST_SIZE, obj.objList?.size)
+        obj.objList?.forEach { obj2 ->
+            assertObj_withOnlyMimicAnnotationEnable(obj2)
+        }
     }
 
     private fun assertObj_withOnlyMimicAnnotationEnable(obj: MimicObj) {
@@ -57,22 +126,6 @@ class MimicUnitTest {
         assert(obj.stringId1?.contains("-") ?: false)
         assert(obj.intId1 > MAX_INT_SIZE)
         assert(obj.longId1 > MAX_LONG_SIZE)
-    }
-
-    @Test
-    fun generateList_withOnlyMimicAnnotationDisable() {
-        val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = false)
-        assertEquals(30000, list.size)
-        list.forEach {
-            assertObj_withOnlyMimicAnnotationDisable(it)
-            val obj = it.obj
-            if (obj != null) assertObj_withOnlyMimicAnnotationDisable(obj)
-        }
-
-        assert(list.any { it.isSomething })
-        assert(list.any { !it.isSomething })
-        assert(list.any { it.isSomething2 })
-        assert(list.any { !it.isSomething2 })
     }
 
     private fun assertObj_withOnlyMimicAnnotationDisable(obj: MimicObj) {
@@ -116,6 +169,7 @@ class MimicUnitTest {
     }
 
     companion object {
+        const val MAX_LIST_SIZE = 10000
         const val MAX_STRING_LENGTH_TEST = 80
         const val MAX_INT_SIZE_TEST = 10
         const val MAX_LONG_SIZE_TEST = 100L
@@ -124,5 +178,6 @@ class MimicUnitTest {
         const val MAX_WORDS_TEST = 4
         const val MIN_TIME_TEST = 1554163179000L
         const val MAX_TIME_TEST = 1554681579000L
+        const val MAX_SUBLIST_SIZE = 12
     }
 }

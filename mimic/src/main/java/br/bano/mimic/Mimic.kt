@@ -42,6 +42,7 @@ fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false): T {
             field.isMimic(Float::class.java, mimicAnnotationOnly) -> setFloatField(obj, field)
             field.isMimic(Boolean::class.java, mimicAnnotationOnly) -> setBooleanField(obj, field)
             isMimicDate(field, mimicAnnotationOnly) -> setDateField(obj, field)
+            isMimicObject(field) -> setObjectField(obj, field, mimicAnnotationOnly)
         }
     }
 
@@ -71,6 +72,9 @@ private fun isMimicDouble(field: Field, mimicAnnotationOnly: Boolean) =
 
 private fun isMimicDate(field: Field, mimicAnnotationOnly: Boolean) =
         field.isMimic(Date::class.java, mimicAnnotationOnly) { it is MimicDate || it is MimicRandom }
+
+private fun isMimicObject(field: Field) =
+    field.annotations.any { it is MimicObject<*> }
 
 private fun Field.isMimic(
     clazz: Class<*>,
@@ -138,4 +142,10 @@ private fun <T : Any> setDateField(obj: T, field: Field) {
     val maxDate = annotation?.maxTime ?: MAX_TIME
     val time = if (minDate == maxDate) minDate else Random.nextLong(minDate, maxDate)
     field.set(obj, Date(time))
+}
+
+private fun <T : Any> setObjectField(obj: T, field: Field, mimicAnnotationOnly: Boolean) {
+    val annotation = field.annotations.find { it is MimicObject<*> } as? MimicObject<*> ?: return
+    val mimicObj = annotation.clazz.java.generateObj(mimicAnnotationOnly)
+    field.set(obj, mimicObj)
 }

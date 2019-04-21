@@ -1,10 +1,7 @@
 package br.bano.mimic
 
-import br.bano.mimic.annotation.*
-import org.junit.Test
-
 import org.junit.Assert.*
-import java.util.*
+import org.junit.Test
 
 class MimicUnitTest {
     @Test
@@ -12,43 +9,9 @@ class MimicUnitTest {
         val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = true)
         assertEquals(30000, list.size)
         list.forEach {
-            assertNotNull(it.string1)
-            assertNull(it.string2)
-
-            val valueLength = it.string1?.length ?: 0
-            assert(valueLength in 1..MAX_STRING_LENGTH)
-            assertNull(it.string2)
-            assert(it.string3?.length ?: 0 in 1..MAX_STRING_LENGTH_TEST)
-
-            assert(it.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
-            assert(it.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
-
-            assert(!(it.string1?.contains("-") ?: false))
-            assert(!(it.string2?.contains("-") ?: false))
-            assert(!(it.string3?.contains("-") ?: false))
-
-            assert(it.int1 in 1..MAX_INT_SIZE)
-            assertEquals(0, it.int2)
-            assert(it.int3 in 1..MAX_INT_SIZE_TEST)
-
-            assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
-            assert(it.double2 == 0.0)
-            assert(it.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
-
-            assert(it.float1 > 0.0f)
-            assert(it.float2 == 0.0f)
-
-            assertEquals(MIN_TIME, it.date1?.time)
-            assertNull(it.date2)
-            assert(it.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
-
-            assert(it.long1 in 1..MAX_LONG_SIZE)
-            assertEquals(0, it.long2)
-            assert(it.long3 in 1..MAX_LONG_SIZE_TEST)
-
-            assert(it.stringId1?.contains("-") ?: false)
-            assert(it.intId1 > MAX_INT_SIZE)
-            assert(it.longId1 > MAX_LONG_SIZE)
+            assertObj_withOnlyMimicAnnotationEnable(it)
+            val obj = it.obj
+            if (obj != null) assertObj_withOnlyMimicAnnotationEnable(obj)
         }
 
         assert(list.any { it.isSomething })
@@ -56,48 +19,54 @@ class MimicUnitTest {
         assert(!list.any { it.isSomething2 })
     }
 
+    private fun assertObj_withOnlyMimicAnnotationEnable(obj: MimicObj) {
+        assertNotNull(obj.string1)
+        assertNull(obj.string2)
+
+        val valueLength = obj.string1?.length ?: 0
+        assert(valueLength in 1..MAX_STRING_LENGTH)
+        assertNull(obj.string2)
+        assert(obj.string3?.length ?: 0 in 1..MAX_STRING_LENGTH_TEST)
+
+        assert(obj.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+        assert(obj.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
+
+        assert(!(obj.string1?.contains("-") ?: false))
+        assert(!(obj.string2?.contains("-") ?: false))
+        assert(!(obj.string3?.contains("-") ?: false))
+
+        assert(obj.int1 in 1..MAX_INT_SIZE)
+        assertEquals(0, obj.int2)
+        assert(obj.int3 in 1..MAX_INT_SIZE_TEST)
+
+        assert(obj.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
+        assert(obj.double2 == 0.0)
+        assert(obj.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
+
+        assert(obj.float1 > 0.0f)
+        assert(obj.float2 == 0.0f)
+
+        assertEquals(MIN_TIME, obj.date1?.time)
+        assertNull(obj.date2)
+        assert(obj.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
+
+        assert(obj.long1 in 1..MAX_LONG_SIZE)
+        assertEquals(0, obj.long2)
+        assert(obj.long3 in 1..MAX_LONG_SIZE_TEST)
+
+        assert(obj.stringId1?.contains("-") ?: false)
+        assert(obj.intId1 > MAX_INT_SIZE)
+        assert(obj.longId1 > MAX_LONG_SIZE)
+    }
+
     @Test
     fun generateList_withOnlyMimicAnnotationDisable() {
         val list = Object1::class.java.generateList(30000, mimicAnnotationOnly = false)
         assertEquals(30000, list.size)
         list.forEach {
-            assertNotNull(it.string1)
-            assertNotNull(it.string2)
-
-            val valueLength = it.string1?.length ?: 0
-            assert(valueLength in 1..MAX_STRING_LENGTH)
-            assert(it.string2?.length ?: 0 in 1..MAX_STRING_LENGTH)
-
-            assert(it.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
-            assert(it.string2?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
-            assert(it.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
-
-            assert(!(it.string1?.contains("-") ?: false))
-            assert(!(it.string2?.contains("-") ?: false))
-            assert(!(it.string3?.contains("-") ?: false))
-
-            assert(it.int1 in 1..MAX_INT_SIZE)
-            assert(it.int2 in 1..MAX_INT_SIZE)
-            assert(it.int3 in 1..MAX_INT_SIZE_TEST)
-
-            assert(it.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
-            assert(it.double2 in 0.1..MAX_DOUBLE_SIZE + 1.0)
-            assert(it.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
-
-            assert(it.float1 > 0.0f)
-            assert(it.float2 > 0.0f)
-
-            assertEquals(MIN_TIME, it.date1?.time)
-            assertEquals(MIN_TIME, it.date2?.time)
-            assert(it.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
-
-            assert(it.long1 in 1..MAX_LONG_SIZE)
-            assert(it.long2 in 1..MAX_LONG_SIZE)
-            assert(it.long3 in 1..MAX_LONG_SIZE_TEST)
-
-            assert(it.stringId1?.contains("-") ?: false)
-            assert(it.intId1 > MAX_INT_SIZE)
-            assert(it.longId1 > MAX_LONG_SIZE)
+            assertObj_withOnlyMimicAnnotationDisable(it)
+            val obj = it.obj
+            if (obj != null) assertObj_withOnlyMimicAnnotationDisable(obj)
         }
 
         assert(list.any { it.isSomething })
@@ -106,51 +75,44 @@ class MimicUnitTest {
         assert(list.any { !it.isSomething2 })
     }
 
-    class Object1 {
-        @MimicRandom
-        var string1: String? = null
-        var string2: String? = null
-        @MimicString(MAX_STRING_LENGTH_TEST, MIN_WORDS_TEST, MAX_WORDS_TEST)
-        var string3: String? = null
+    private fun assertObj_withOnlyMimicAnnotationDisable(obj: MimicObj) {
+        assertNotNull(obj.string1)
+        assertNotNull(obj.string2)
 
-        @MimicRandom
-        var int1: Int = 0
-        var int2: Int = 0
-        @MimicInt(MAX_INT_SIZE_TEST)
-        var int3: Int = 0
+        val valueLength = obj.string1?.length ?: 0
+        assert(valueLength in 1..MAX_STRING_LENGTH)
+        assert(obj.string2?.length ?: 0 in 1..MAX_STRING_LENGTH)
 
-        @MimicRandom
-        var isSomething: Boolean = false
-        var isSomething2: Boolean = false
+        assert(obj.string1?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+        assert(obj.string2?.split(" ")?.size ?: 0 in MIN_WORDS..MAX_WORDS)
+        assert(obj.string3?.split(" ")?.size ?: 0 in MIN_WORDS_TEST..MAX_WORDS_TEST)
 
-        @MimicRandom
-        var double1: Double = 0.0
-        var double2: Double = 0.0
-        @MimicDouble(MAX_DOUBLE_SIZE_TEST)
-        var double3: Double = 0.0
+        assert(!(obj.string1?.contains("-") ?: false))
+        assert(!(obj.string2?.contains("-") ?: false))
+        assert(!(obj.string3?.contains("-") ?: false))
 
-        @MimicRandom
-        var float1: Float = 0.0f
-        var float2: Float = 0.0f
+        assert(obj.int1 in 1..MAX_INT_SIZE)
+        assert(obj.int2 in 1..MAX_INT_SIZE)
+        assert(obj.int3 in 1..MAX_INT_SIZE_TEST)
 
-        @MimicRandom
-        var date1: Date? = null
-        var date2: Date? = null
-        @MimicDate(MIN_TIME_TEST, MAX_TIME_TEST)
-        var date3: Date? = null
+        assert(obj.double1 in 0.1..MAX_DOUBLE_SIZE + 1.0)
+        assert(obj.double2 in 0.1..MAX_DOUBLE_SIZE + 1.0)
+        assert(obj.double3 in 0.1..MAX_DOUBLE_SIZE_TEST + 1.0)
 
-        @MimicRandom
-        var long1: Long = 0
-        var long2: Long = 0
-        @MimicLong(MAX_LONG_SIZE_TEST)
-        var long3: Long = 0
+        assert(obj.float1 > 0.0f)
+        assert(obj.float2 > 0.0f)
 
-        @MimicStringId
-        var stringId1: String? = null
-        @MimicIntId
-        var intId1: Int = 0
-        @MimicLongId
-        var longId1: Long = 0
+        assertEquals(MIN_TIME, obj.date1?.time)
+        assertEquals(MIN_TIME, obj.date2?.time)
+        assert(obj.date3?.time ?: 0 in MIN_TIME_TEST..MAX_TIME_TEST)
+
+        assert(obj.long1 in 1..MAX_LONG_SIZE)
+        assert(obj.long2 in 1..MAX_LONG_SIZE)
+        assert(obj.long3 in 1..MAX_LONG_SIZE_TEST)
+
+        assert(obj.stringId1?.contains("-") ?: false)
+        assert(obj.intId1 > MAX_INT_SIZE)
+        assert(obj.longId1 > MAX_LONG_SIZE)
     }
 
     companion object {

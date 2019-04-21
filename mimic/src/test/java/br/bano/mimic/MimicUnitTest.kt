@@ -44,6 +44,7 @@ class MimicUnitTest {
 
             assert(it.long1 in 1..MAX_LONG_SIZE)
             assertEquals(0, it.long2)
+            assert(it.long3 in 1..MAX_LONG_SIZE_TEST)
 
             assert(it.stringId1?.contains("-") ?: false)
             assert(it.intId1 > MAX_INT_SIZE)
@@ -92,6 +93,7 @@ class MimicUnitTest {
 
             assert(it.long1 in 1..MAX_LONG_SIZE)
             assert(it.long2 in 1..MAX_LONG_SIZE)
+            assert(it.long3 in 1..MAX_LONG_SIZE_TEST)
 
             assert(it.stringId1?.contains("-") ?: false)
             assert(it.intId1 > MAX_INT_SIZE)
@@ -140,6 +142,8 @@ class MimicUnitTest {
         @MimicRandom
         var long1: Long = 0
         var long2: Long = 0
+        @MimicLong(MAX_LONG_SIZE_TEST)
+        var long3: Long = 0
 
         @MimicStringId
         var stringId1: String? = null

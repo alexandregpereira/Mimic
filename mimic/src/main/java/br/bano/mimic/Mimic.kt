@@ -111,7 +111,8 @@ private fun <T : Any> setIntIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setLongField(obj: T, field: Field) {
-    field.setLong(obj, Random.nextLong(MAX_LONG_SIZE) + 1)
+    val max = (field.annotations.find { it is MimicLong } as? MimicLong)?.max ?: MAX_LONG_SIZE
+    field.setLong(obj, Random.nextLong(max) + 1)
 }
 
 private fun <T : Any> setLongIdField(obj: T, field: Field) {

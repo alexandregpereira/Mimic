@@ -1,7 +1,7 @@
 # Mimic
 [![](https://jitpack.io/v/alexandregpereira/mimic.svg)](https://jitpack.io/#alexandregpereira/mimic)
 
-Android library to mock objects with random values to increase speed development.
+Android library to mock objects with random values to increase speed development / Boost your Experience.
 
 ## Implementation
 Add it in your root `build.gradle` at the end of repositories.
@@ -92,7 +92,7 @@ class MyObject {
 }
 ```
 ## ProGuard
-If your project uses ProGuard or some ofuscation configuration, you are going to need to configure the ofuscation to avoid the Mimic library classes. Below is an example using ProGuard:
+If your project uses ProGuard or some ofuscation configuration, you wii be going to need to configure the ofuscation to avoid the Mimic library classes. There are some examples below using ProGuard:
 ```pro
 -keep class br.bano.mimic.** { *; }
 ```

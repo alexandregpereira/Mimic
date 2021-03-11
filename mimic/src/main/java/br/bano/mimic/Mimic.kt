@@ -5,6 +5,9 @@ import com.thedeanda.lorem.LoremIpsum
 import java.lang.reflect.Field
 import java.util.*
 import kotlin.random.Random
+import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.isSubclassOf
 
 const val MAX_STRING_LENGTH = 150
 const val MAX_INT_SIZE = 1000
@@ -15,19 +18,87 @@ const val MAX_WORDS = 30
 const val MIN_TIME = 1555804864884L
 const val MAX_TIME = 1555804864884L
 
-fun <T : Any> Class<T>.generateList(size: Int, mimicAnnotationOnly: Boolean = false): List<T> {
+data class Type(
+    val clazz: KClass<*>,
+    val listSize: Int = 2
+)
+
+private var typeSequenceIterator: Iterator<Type>? = null
+
+fun <T : Any> KClass<T>.generateList(
+    size: Int,
+    mimicAnnotationOnly: Boolean = false,
+    typeSequence: List<Type> = listOf()
+): List<T> {
+    val newTypeSequence = typeSequence.run {
+        val newList = mutableListOf<Type>()
+        (0 until size).forEach { _ ->
+            newList.addAll(this)
+        }
+        newList
+    }
     return (0 until size).map {
-        this.generateObj(mimicAnnotationOnly, avoidSubLists = false)
+        this.generateObj(mimicAnnotationOnly, avoidSubLists = false, typeSequence = newTypeSequence)
     }
 }
 
-fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false, avoidSubLists: Boolean = false): T {
-    val obj: T = try {
-        this.getConstructor().newInstance()
-    } catch (ex: NoSuchMethodException) {
-        throw NoSuchMethodException("$this must have a empty constructor")
+fun <T : Any> KClass<T>.generateObj(
+    mimicAnnotationOnly: Boolean = false,
+    avoidSubLists: Boolean = false,
+    typeSequence: List<Type> = listOf()
+): T {
+    if (typeSequenceIterator == null) {
+        typeSequenceIterator = typeSequence.iterator()
     }
+    return try {
+        this.constructors.first().call().apply {
+            generateMutableFields(this, mimicAnnotationOnly, avoidSubLists)
+        }
+    } catch (ex: IllegalArgumentException) {
+        this.generateIMutableFields()
+    }
+}
 
+private fun <T : Any> KClass<T>.generateIMutableFields(): T {
+    val constructor = this.constructors.first()
+    val parameters: List<Any> = constructor.parameters.map {
+        when (val parameterClass = it.type.classifier as KClass<Any>) {
+            String::class.java -> getStringValue()
+            Int::class.java -> getIntValue()
+            Boolean::class.java -> getBooleanValue()
+            Double::class.java -> getDoubleValue()
+            Float::class.java -> getFloatValue()
+            Date::class.java -> getDateValue()
+            Calendar::class.java -> getCalendarValue()
+            Long::class.java -> getLongValue()
+            List::class.java -> {
+                if (typeSequenceIterator?.hasNext()?.not() == true) {
+                    listOf<Any>()
+                } else {
+                    typeSequenceIterator?.next()?.run {
+                        clazz.generateList(size = listSize)
+                    } ?: listOf()
+                }
+            }
+            else -> {
+                if (parameterClass.isSubclassOf(Enum::class).not()) {
+                    parameterClass.generateIMutableFields()
+                } else {
+
+                    parameterClass.createInstance()
+                }
+
+            }
+        }
+    }
+    return constructor.call(*parameters.toTypedArray()) as T
+}
+
+private fun <T : Any> generateMutableFields(
+    obj: T,
+    mimicAnnotationOnly: Boolean = false,
+    avoidSubLists: Boolean = false
+): T {
     val lorem = LoremIpsum.getInstance()
     obj::class.java.declaredFields.forEach { field ->
         field.isAccessible = true
@@ -51,7 +122,10 @@ fun <T : Any> Class<T>.generateObj(mimicAnnotationOnly: Boolean = false, avoidSu
 }
 
 private fun isMimicString(field: Field, mimicAnnotationOnly: Boolean) =
-    field.isMimic(String::class.java, mimicAnnotationOnly) { it is MimicString || it is MimicRandom }
+    field.isMimic(
+        String::class.java,
+        mimicAnnotationOnly
+    ) { it is MimicString || it is MimicRandom }
 
 private fun isMimicStringId(field: Field) =
     field.isMimic(String::class.java) { it is MimicStringId }
@@ -69,7 +143,10 @@ private fun isMimicLongId(field: Field) =
     field.isMimic(Long::class.java) { it is MimicLongId }
 
 private fun isMimicDouble(field: Field, mimicAnnotationOnly: Boolean) =
-    field.isMimic(Double::class.java, mimicAnnotationOnly) { it is MimicDouble || it is MimicRandom }
+    field.isMimic(
+        Double::class.java,
+        mimicAnnotationOnly
+    ) { it is MimicDouble || it is MimicRandom }
 
 private fun isMimicDate(field: Field, mimicAnnotationOnly: Boolean) =
     field.isMimic(Date::class.java, mimicAnnotationOnly) { it is MimicDate || it is MimicRandom }
@@ -90,19 +167,23 @@ private fun Field.isMimic(
                     this.annotations.any(predicated))
 
 private fun <T : Any> setStringField(obj: T, field: Field, lorem: LoremIpsum) {
-    val stringAnnotation = field.annotations.find { it is MimicString } as? MimicString
+    field.set(
+        obj,
+        getStringValue(field)
+    )
+}
+
+private fun getStringValue(field: Field? = null): String {
+    val stringAnnotation = field?.annotations?.find { it is MimicString } as? MimicString
     val maxLength = stringAnnotation?.maxLength ?: MAX_STRING_LENGTH
     val minWords = stringAnnotation?.minWords ?: MIN_WORDS
     val maxWords = stringAnnotation?.maxWords ?: MAX_WORDS
 
-    val words = lorem.getWords(minWords, maxWords)
-    field.set(
-        obj,
-        if (words.length > maxLength)
-            words.substring(0, maxLength).trim()
-        else
-            words
-    )
+    val words = LoremIpsum.getInstance().getWords(minWords, maxWords)
+    return if (words.length > maxLength)
+        words.substring(0, maxLength).trim()
+    else
+        words
 }
 
 private fun <T : Any> setStringIdField(obj: T, field: Field) {
@@ -110,8 +191,12 @@ private fun <T : Any> setStringIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setIntField(obj: T, field: Field) {
-    val max = (field.annotations.find { it is MimicInt } as? MimicInt)?.max ?: MAX_INT_SIZE
-    field.setInt(obj, Random.nextInt(max) + 1)
+    field.setInt(obj, getIntValue(field))
+}
+
+private fun getIntValue(field: Field? = null): Int {
+    val max = (field?.annotations?.find { it is MimicInt } as? MimicInt)?.max ?: MAX_INT_SIZE
+    return Random.nextInt(max) + 1
 }
 
 private fun <T : Any> setIntIdField(obj: T, field: Field) {
@@ -119,8 +204,12 @@ private fun <T : Any> setIntIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setLongField(obj: T, field: Field) {
-    val max = (field.annotations.find { it is MimicLong } as? MimicLong)?.max ?: MAX_LONG_SIZE
-    field.setLong(obj, Random.nextLong(max) + 1)
+    field.setLong(obj, getLongValue())
+}
+
+private fun getLongValue(field: Field? = null): Long {
+    val max = (field?.annotations?.find { it is MimicLong } as? MimicLong)?.max ?: MAX_LONG_SIZE
+    return Random.nextLong(max) + 1
 }
 
 private fun <T : Any> setLongIdField(obj: T, field: Field) {
@@ -128,34 +217,55 @@ private fun <T : Any> setLongIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setDoubleField(obj: T, field: Field) {
-    val max = (field.annotations.find { it is MimicDouble } as? MimicDouble)?.max ?: MAX_DOUBLE_SIZE
-    field.setDouble(obj, Random.nextDouble(max) + 1.0)
+    field.setDouble(obj, getDoubleValue())
+}
+
+private fun getDoubleValue(field: Field? = null): Double {
+    val max =
+        (field?.annotations?.find { it is MimicDouble } as? MimicDouble)?.max ?: MAX_DOUBLE_SIZE
+    return Random.nextDouble(max) + 1.0
 }
 
 private fun <T : Any> setFloatField(obj: T, field: Field) {
-    field.setFloat(obj, Random.nextFloat() + 1.0f)
+    field.setFloat(obj, getFloatValue())
+}
+
+private fun getFloatValue(): Float {
+    return Random.nextFloat() + 1.0f
 }
 
 private fun <T : Any> setBooleanField(obj: T, field: Field) {
-    field.setBoolean(obj, Random.nextInt(2) == 1)
+    field.setBoolean(obj, getBooleanValue())
+}
+
+private fun getBooleanValue(): Boolean {
+    return Random.nextInt(2) == 1
 }
 
 private fun <T : Any> setDateField(obj: T, field: Field) {
-    val annotation = field.annotations.find { it is MimicDate } as? MimicDate
+    field.set(obj, getDateValue())
+}
+
+private fun getDateValue(field: Field? = null): Date {
+    val annotation = field?.annotations?.find { it is MimicDate } as? MimicDate
     val minDate = annotation?.minTime ?: MIN_TIME
     val maxDate = annotation?.maxTime ?: MAX_TIME
     val time = if (minDate == maxDate) minDate else Random.nextLong(minDate, maxDate)
-    field.set(obj, Date(time))
+    return Date(time)
+}
+
+private fun getCalendarValue(): Calendar {
+    return Calendar.getInstance().apply { time = getDateValue() }
 }
 
 private fun <T : Any> setObjectField(obj: T, field: Field, mimicAnnotationOnly: Boolean) {
     val annotation = field.annotations.find { it is MimicObject<*> } as? MimicObject<*> ?: return
-    val mimicObj = annotation.clazz.java.generateObj(mimicAnnotationOnly)
+    val mimicObj = annotation.clazz.generateObj(mimicAnnotationOnly)
     field.set(obj, mimicObj)
 }
 
 private fun <T : Any> setListField(obj: T, field: Field, mimicAnnotationOnly: Boolean) {
     val annotation = field.annotations.find { it is MimicList<*> } as? MimicList<*> ?: return
-    val mimicObj = annotation.clazz.java.generateList(annotation.size, mimicAnnotationOnly)
+    val mimicObj = annotation.clazz.generateList(annotation.size, mimicAnnotationOnly)
     field.set(obj, mimicObj)
 }

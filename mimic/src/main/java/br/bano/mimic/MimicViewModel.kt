@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 open class MimicViewModel<T : Any> : ViewModel() {
 
@@ -14,7 +15,7 @@ open class MimicViewModel<T : Any> : ViewModel() {
     protected val objLiveData = MutableLiveData<T?>()
 
     fun generateListLiveData(
-        clazz: Class<T>,
+        clazz: KClass<T>,
         listSize: Int,
         mimicAnnotationOnly: Boolean = false
     ): LiveData<List<T>?> {
@@ -25,7 +26,7 @@ open class MimicViewModel<T : Any> : ViewModel() {
     }
 
     fun generateObjLiveData(
-        clazz: Class<T>,
+        clazz: KClass<T>,
         mimicAnnotationOnly: Boolean = false
     ): LiveData<T?> {
         getCoroutineScopeMain {

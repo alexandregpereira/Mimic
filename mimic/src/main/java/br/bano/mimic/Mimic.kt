@@ -62,18 +62,18 @@ fun <T : Any> KClass<T>.generateObj(
 private fun <T : Any> KClass<T>.generateIMutableFields(): T {
     val constructor = this.constructors.first()
     val parameters: List<Any> = constructor.parameters.map {
-        when (val parameterClass = it.type.classifier as KClass<Any>) {
-            String::class.java -> getStringValue()
-            Int::class.java -> getIntValue()
-            Boolean::class.java -> getBooleanValue()
-            Double::class.java -> getDoubleValue()
-            Float::class.java -> getFloatValue()
-            Date::class.java -> getDateValue()
-            Calendar::class.java -> getCalendarValue()
-            Long::class.java -> getLongValue()
-            List::class.java -> {
+        when (val parameterClass = it.type.classifier as KClass<*>) {
+            String::class -> getStringValue()
+            Int::class -> getIntValue()
+            Boolean::class -> getBooleanValue()
+            Double::class -> getDoubleValue()
+            Float::class -> getFloatValue()
+            Date::class -> getDateValue()
+            Calendar::class -> getCalendarValue()
+            Long::class -> getLongValue()
+            List::class -> {
                 if (typeSequenceIterator?.hasNext()?.not() == true) {
-                    listOf<Any>()
+                    listOf()
                 } else {
                     typeSequenceIterator?.next()?.run {
                         clazz.generateList(size = listSize)
@@ -204,7 +204,7 @@ private fun <T : Any> setIntIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setLongField(obj: T, field: Field) {
-    field.setLong(obj, getLongValue())
+    field.setLong(obj, getLongValue(field))
 }
 
 private fun getLongValue(field: Field? = null): Long {
@@ -217,7 +217,7 @@ private fun <T : Any> setLongIdField(obj: T, field: Field) {
 }
 
 private fun <T : Any> setDoubleField(obj: T, field: Field) {
-    field.setDouble(obj, getDoubleValue())
+    field.setDouble(obj, getDoubleValue(field))
 }
 
 private fun getDoubleValue(field: Field? = null): Double {
@@ -243,7 +243,7 @@ private fun getBooleanValue(): Boolean {
 }
 
 private fun <T : Any> setDateField(obj: T, field: Field) {
-    field.set(obj, getDateValue())
+    field.set(obj, getDateValue(field))
 }
 
 private fun getDateValue(field: Field? = null): Date {
